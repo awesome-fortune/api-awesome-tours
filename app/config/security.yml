@@ -1,0 +1,21 @@
+security:
+    encoders:
+        UserBundle\Entity\User: bcrypt
+
+    providers:
+        database_user:
+            entity: { class: UserBundle:User}
+
+    firewalls:
+        # disables authentication for assets and the profiler, adapt it according to your needs
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            pattern: ^/
+            anonymous: true
+            stateless: true
+            guard:
+                authenticators:
+                    - 'jwt_token_authenticator'

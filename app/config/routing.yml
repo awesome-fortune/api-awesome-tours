@@ -1,0 +1,27 @@
+api_logs:
+    resource: "@ApiLogsBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+route:
+    resource: "@BusRouteBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+trip:
+    resource: "@TripBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+bus:
+    resource: "@BusBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+user:
+    resource: "@UserBundle/Controller/"
+    type:     annotation
+    prefix:   /
+
+#fos_user:
+#    resource: "@FOSUserBundle/Resources/config/routing/all.xml"

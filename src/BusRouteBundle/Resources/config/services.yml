@@ -1,0 +1,16 @@
+services:
+#    route.example:
+#        class: RouteBundle\Example
+#        arguments: ["@service_id", "plain_value", %parameter%]
+    jwt_token_authenticator:
+        class: UserBundle\Security\JwtTokenAuthenticator
+        autowire: true
+
+    api.response_factory:
+        class: Extra\ResponseFactory
+
+    api_exception_subscriber:
+        class: Extra\ApiExceptionSubscriber
+        arguments: ['%%kernel.debug%%', '@api.response_factory']
+        tags:
+            - { name: kernel.event_subscriber }
