@@ -185,53 +185,39 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
 
         }
 
-        if (0 === strpos($pathinfo, '/trip')) {
-            if (0 === strpos($pathinfo, '/trips')) {
-                // trip_trip_edittrip
-                if (preg_match('#^/trips/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
-                    if ($this->context->getMethod() != 'PUT') {
-                        $allow[] = 'PUT';
-                        goto not_trip_trip_edittrip;
-                    }
-
-                    return $this->mergeDefaults(array_replace($matches, array('_route' => 'trip_trip_edittrip')), array (  '_controller' => 'TripBundle\\Controller\\TripController::editTripAction',));
+        if (0 === strpos($pathinfo, '/trips')) {
+            // trip_trip_edittrip
+            if (preg_match('#^/trips/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+                if ($this->context->getMethod() != 'PUT') {
+                    $allow[] = 'PUT';
+                    goto not_trip_trip_edittrip;
                 }
-                not_trip_trip_edittrip:
 
-                // trip_trip_deletetrip
-                if (preg_match('#^/trips/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
-                    if ($this->context->getMethod() != 'DELETE') {
-                        $allow[] = 'DELETE';
-                        goto not_trip_trip_deletetrip;
-                    }
-
-                    return $this->mergeDefaults(array_replace($matches, array('_route' => 'trip_trip_deletetrip')), array (  '_controller' => 'TripBundle\\Controller\\TripController::deleteTripAction',));
-                }
-                not_trip_trip_deletetrip:
-
-                // trip_trip_createtrip
-                if ($pathinfo === '/trips') {
-                    if ($this->context->getMethod() != 'POST') {
-                        $allow[] = 'POST';
-                        goto not_trip_trip_createtrip;
-                    }
-
-                    return array (  '_controller' => 'TripBundle\\Controller\\TripController::createTripAction',  '_route' => 'trip_trip_createtrip',);
-                }
-                not_trip_trip_createtrip:
-
+                return $this->mergeDefaults(array_replace($matches, array('_route' => 'trip_trip_edittrip')), array (  '_controller' => 'TripBundle\\Controller\\TripController::editTripAction',));
             }
+            not_trip_trip_edittrip:
 
-            // trip_trip_addtrip
-            if ($pathinfo === '/trip') {
+            // trip_trip_deletetrip
+            if (preg_match('#^/trips/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+                if ($this->context->getMethod() != 'DELETE') {
+                    $allow[] = 'DELETE';
+                    goto not_trip_trip_deletetrip;
+                }
+
+                return $this->mergeDefaults(array_replace($matches, array('_route' => 'trip_trip_deletetrip')), array (  '_controller' => 'TripBundle\\Controller\\TripController::deleteTripAction',));
+            }
+            not_trip_trip_deletetrip:
+
+            // trip_trip_createtrip
+            if ($pathinfo === '/trips') {
                 if ($this->context->getMethod() != 'POST') {
                     $allow[] = 'POST';
-                    goto not_trip_trip_addtrip;
+                    goto not_trip_trip_createtrip;
                 }
 
-                return array (  '_controller' => 'TripBundle\\Controller\\TripController::addTripAction',  '_route' => 'trip_trip_addtrip',);
+                return array (  '_controller' => 'TripBundle\\Controller\\TripController::createTripAction',  '_route' => 'trip_trip_createtrip',);
             }
-            not_trip_trip_addtrip:
+            not_trip_trip_createtrip:
 
             // trip_trip_listtrips
             if ($pathinfo === '/trips') {
@@ -368,16 +354,41 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
 
         }
 
-        // user_user_registeruser
-        if ($pathinfo === '/users') {
+        if (0 === strpos($pathinfo, '/users')) {
+            // user_user_registeruser
+            if ($pathinfo === '/users') {
+                if ($this->context->getMethod() != 'POST') {
+                    $allow[] = 'POST';
+                    goto not_user_user_registeruser;
+                }
+
+                return array (  '_controller' => 'UserBundle\\Controller\\UserController::registerUserAction',  '_route' => 'user_user_registeruser',);
+            }
+            not_user_user_registeruser:
+
+            // user_user_showuser
+            if (preg_match('#^/users/(?P<username>[^/]++)$#s', $pathinfo, $matches)) {
+                if (!in_array($this->context->getMethod(), array('GET', 'HEAD'))) {
+                    $allow = array_merge($allow, array('GET', 'HEAD'));
+                    goto not_user_user_showuser;
+                }
+
+                return $this->mergeDefaults(array_replace($matches, array('_route' => 'user_user_showuser')), array (  '_controller' => 'UserBundle\\Controller\\UserController::showUserAction',));
+            }
+            not_user_user_showuser:
+
+        }
+
+        // user_user_logout
+        if ($pathinfo === '/logout') {
             if ($this->context->getMethod() != 'POST') {
                 $allow[] = 'POST';
-                goto not_user_user_registeruser;
+                goto not_user_user_logout;
             }
 
-            return array (  '_controller' => 'UserBundle\\Controller\\UserController::registerUserAction',  '_route' => 'user_user_registeruser',);
+            return array (  '_controller' => 'UserBundle\\Controller\\UserController::logoutAction',  '_route' => 'user_user_logout',);
         }
-        not_user_user_registeruser:
+        not_user_user_logout:
 
         // user_user_newtoken
         if ($pathinfo === '/tokens') {

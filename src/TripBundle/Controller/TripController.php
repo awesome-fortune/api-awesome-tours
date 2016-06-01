@@ -22,41 +22,38 @@ class TripController extends Controller
     {
         $data = json_decode($request->getContent(), true);
 
-        $tripName = $data['tripName'];
-        $routeName = $data['routeName'];
-        $busRegistration = $data['busRegistration'];
-        $seatsAvailable = $data['seatsAvailable'];
-        $fare = $data['fare'];
         $username = $data['username'];
 
-        if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
 
-            $em = $this->getDoctrine()->getManager();
+        $em = $this->getDoctrine()->getManager();
 
-            $tripEntity = $this->getDoctrine()
-                ->getRepository("TripBundle:Trip")
-                ->find($id);
+        $tripEntity = $this->getDoctrine()
+            ->getRepository("TripBundle:Trip")
+            ->find($id);
 
+        if ($tripEntity->getSeatsAvailable() != 0) {
             $originalTrip = $tripEntity->getTripName();
-            
+            $seatsAvailable = $tripEntity->getSeatsAvailable() - 1;
+
             $tripTableLogEntity = new TripTableLog();
             $tripTableLogEntity->setUser($username);
             $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
             $tripTableLogEntity->setClientIP($request->getClientIp());
-            $tripTableLogEntity->setAction("Edited $originalTrip *NEW_DATA--> Trip Name = $tripEntity, Route Name = $routeName, Bus Registration = $busRegistration, Fare = R$fare, Seats Available = $seatsAvailable");
+            $tripTableLogEntity->setAction("Bought a ticket. Ticket ID: $id for trip: $originalTrip");
 
-            $tripEntity->setTripName($tripName);
-            $tripEntity->setRouteName($routeName);
-            $tripEntity->setBusRegistration($busRegistration);
             $tripEntity->setSeatsAvailable($seatsAvailable);
-            $tripEntity->setFare($fare);
             $tripEntity->setUpdated(DateTimeProvider::getNow());
 
             $em->merge($tripEntity);
+            $em->persist($tripTableLogEntity);
             $em->flush();
 
             $response = [
-                'message' => 'Trip successfully updated.'
+                'message' => 'Successfully purchased ticket.'
+            ];   
+        } else {
+            $response = [
+                'message' => 'tickets have been sold out'
             ];
         }
 
@@ -67,13 +64,22 @@ class TripController extends Controller
      * @Route("/trips/{id}")
      * @Method("DELETE")
      */
-    public function deleteTripAction($id)
+    public function deleteTripAction($id, Request $request)
     {
         $em = $this->getDoctrine()->getManager();
         $trip = $em->getRepository("TripBundle:Trip")
             ->find($id);
 
+        $tripName = $trip->getTripName();
+
+        $tripTableLogEntity = new TripTableLog();
+        $tripTableLogEntity->setClientIP($request->getClientIp());
+        $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
+        $tripTableLogEntity->setUser('awesome_admin');
+        $tripTableLogEntity->setAction("Added $tripName");
+
         $em->remove($trip);
+        $em->persist($tripTableLogEntity);
         $em->flush();
 
         $response = [
@@ -82,63 +88,12 @@ class TripController extends Controller
 
         return new JsonResponse($response);
     }
-    
+
     /**
      * @Route("/trips")
      * @Method("POST")
      */
     public function createTripAction(Request $request)
-    {
-        $data = json_decode($request->getContent(), true);
-
-        $tripName = $data['tripName'];
-        $routeID = $data['route'];
-        $seats = $data['seats'];
-        $fare = $data['fare'];
-        $busID = $data['bus'];
-        $username = $data['username'];
-
-        if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
-
-            $tripTableLogEntity = new TripTableLog();
-            $tripTableLogEntity->setClientIP($request->getClientIp());
-            $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
-            $tripTableLogEntity->setUser($username);
-            $tripTableLogEntity->setAction("Added $tripName");
-
-            $tripEntity = new Trip();
-
-            $tripEntity->setFare($fare);
-            $tripEntity->setRouteID($routeID);
-            $tripEntity->setUpdated(DateTimeProvider::getNow());
-            $tripEntity->setBusID($busID);
-            $tripEntity->setSeatsAvailable($seats);
-            $tripEntity->setTripName($tripName);
-            $tripEntity->setCreated(DateTimeProvider::getNow());
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($tripTableLogEntity);
-            $em->persist($tripEntity);
-            $em->flush();
-
-            $response = [
-                'message' => $tripName . " successfully added to the trip list."
-            ];
-        } else {
-            $response = [
-                'message' => "Insufficient permissions",
-                'status' => 'error'
-            ];
-        }
-
-        return new JsonResponse($response);
-    }
-
-    /**
-     * @Route("/trip")
-     * @Method("POST")
-     */
-    public function addTripAction(Request $request)
     {
         $data = json_decode($request->getContent(), true);
 

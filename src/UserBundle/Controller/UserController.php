@@ -2,6 +2,7 @@
 
 namespace UserBundle\Controller;
 
+use Extra\ApiClient;
 use ApiLogsBundle\Entity\UserTableLog;
 use Extra\DateTimeProvider;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -122,6 +123,26 @@ class UserController extends Controller
     }
 
     /**
+     * @Route("/users/{username}")
+     * @Method("GET")
+     */
+    public function showUserAction($username) {
+        $user = $this->findUserByUsername($username);
+        
+        $response = [
+            'username' => $user->getUsername(),
+            'created' => $user->getCreated(),
+            'updated' => $user->getUpdated(),
+            'firstName' => $user->getFirstName(),
+            'lastName' => $user->getLastName(),
+            'email' => $user->getEmail(),
+            'gender' => $user->getGender()
+        ];
+        
+        return new JsonResponse($response);
+    }
+    
+    /**
      * @param $username
      * @return User
      */
@@ -139,6 +160,39 @@ class UserController extends Controller
             ->getRepository("UserBundle:User");
     }
 
+    /**
+     * @Route("/logout")
+     * @Method("POST")
+     */
+    public function logoutAction(Request $request) 
+    {
+        $data = json_decode($request->getContent(), true);
+
+        $username = $data['username'];
+        if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
+            
+            $userLogTableEntity = new UserTableLog();
+            $userLogTableEntity->setAction("$username logged out");
+            $userLogTableEntity->setCreated(DateTimeProvider::getNow());
+            $userLogTableEntity->setClientIP($request->getClientIp());
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($userLogTableEntity);
+            $em->flush();
+
+            $response = [
+                'message' => $username . " successfully logged out."
+            ];
+        } else {
+            $response = [
+                'message' => "Oops, something went wrong", // User probably needs to provide username
+                'status' => 'error'
+            ];
+        }
+        
+        return new JsonResponse($response);
+    }
+    
     /**
      * @Route("/tokens")
      * @Method("POST")
