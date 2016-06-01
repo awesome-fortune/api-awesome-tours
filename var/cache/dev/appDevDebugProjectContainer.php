@@ -2086,7 +2086,7 @@ class appDevDebugProjectContainer extends Container
 
         $f = new \Symfony\Component\Security\Http\AccessMap();
 
-        return $this->services['security.firewall.map.context.main'] = new \Symfony\Bundle\SecurityBundle\Security\FirewallContext(array(0 => new \Symfony\Component\Security\Http\Firewall\ChannelListener($f, new \Symfony\Component\Security\Http\EntryPoint\RetryAuthenticationEntryPoint(80, 443), $a), 1 => new \Symfony\Component\Security\Guard\Firewall\GuardAuthenticationListener($this->get('security.authentication.guard_handler'), $b, 'main', array(0 => $c), $a), 2 => new \Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener($d, '574dceced68076.77773455', $a, $b), 3 => new \Symfony\Component\Security\Http\Firewall\AccessListener($d, $this->get('security.access.decision_manager'), $f, $b)), new \Symfony\Component\Security\Http\Firewall\ExceptionListener($d, $this->get('security.authentication.trust_resolver'), new \Symfony\Component\Security\Http\HttpUtils($e, $e), 'main', $c, NULL, NULL, $a, true));
+        return $this->services['security.firewall.map.context.main'] = new \Symfony\Bundle\SecurityBundle\Security\FirewallContext(array(0 => new \Symfony\Component\Security\Http\Firewall\ChannelListener($f, new \Symfony\Component\Security\Http\EntryPoint\RetryAuthenticationEntryPoint(80, 443), $a), 1 => new \Symfony\Component\Security\Guard\Firewall\GuardAuthenticationListener($this->get('security.authentication.guard_handler'), $b, 'main', array(0 => $c), $a), 2 => new \Symfony\Component\Security\Http\Firewall\AnonymousAuthenticationListener($d, '574e3f74b39aa2.87184855', $a, $b), 3 => new \Symfony\Component\Security\Http\Firewall\AccessListener($d, $this->get('security.access.decision_manager'), $f, $b)), new \Symfony\Component\Security\Http\Firewall\ExceptionListener($d, $this->get('security.authentication.trust_resolver'), new \Symfony\Component\Security\Http\HttpUtils($e, $e), 'main', $c, NULL, NULL, $a, true));
     }
 
     /**
@@ -3384,7 +3384,7 @@ class appDevDebugProjectContainer extends Container
      */
     protected function getSecurity_Authentication_ManagerService()
     {
-        $this->services['security.authentication.manager'] = $instance = new \Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager(array(0 => new \Symfony\Component\Security\Guard\Provider\GuardAuthenticationProvider(array(0 => $this->get('jwt_token_authenticator')), new \Symfony\Bridge\Doctrine\Security\User\EntityUserProvider($this->get('doctrine'), 'UserBundle:User', NULL, NULL), 'main', $this->get('security.user_checker.main')), 1 => new \Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider('574dceced68076.77773455')), true);
+        $this->services['security.authentication.manager'] = $instance = new \Symfony\Component\Security\Core\Authentication\AuthenticationProviderManager(array(0 => new \Symfony\Component\Security\Guard\Provider\GuardAuthenticationProvider(array(0 => $this->get('jwt_token_authenticator')), new \Symfony\Bridge\Doctrine\Security\User\EntityUserProvider($this->get('doctrine'), 'UserBundle:User', NULL, NULL), 'main', $this->get('security.user_checker.main')), 1 => new \Symfony\Component\Security\Core\Authentication\Provider\AnonymousAuthenticationProvider('574e3f74b39aa2.87184855')), true);
 
         $instance->setEventDispatcher($this->get('debug.event_dispatcher'));
 

@@ -117,8 +117,15 @@ class BusRouteController extends Controller
             $busRouteEntity->setDepartureLocation($departureLocation);
             $busRouteEntity->setDestination($destination);
 
+            $busRouteTableLogEntity = new BusRouteTableLog();
+            $busRouteTableLogEntity->setClientIP($request->getClientIp());
+            $busRouteTableLogEntity->setUser($username);
+            $busRouteTableLogEntity->setAction("Added $routeName");
+            $busRouteTableLogEntity->setCreated(DateTimeProvider::getNow());
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($busRouteEntity);
+            $em->persist($busRouteTableLogEntity);
             $em->flush();
 
             $response = [

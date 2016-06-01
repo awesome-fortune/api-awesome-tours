@@ -22,7 +22,7 @@ class AppKernel extends Kernel
             new \Nelmio\CorsBundle\NelmioCorsBundle(),
             new \Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle(),
             new Lexik\Bundle\JWTAuthenticationBundle\LexikJWTAuthenticationBundle(),
-            new ApiLogsBundle\ApiLogsBundle(),
+            new ApiLogsBundle\ApiLogsBundle()
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'], true)) {

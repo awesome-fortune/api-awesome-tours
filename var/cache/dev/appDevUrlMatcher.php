@@ -100,49 +100,49 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
 
         }
 
-        // apilogs_default_buslogs
+        // apilogs_apilogs_buslogs
         if ($pathinfo === '/bus-logs') {
             if ($this->context->getMethod() != 'POST') {
                 $allow[] = 'POST';
-                goto not_apilogs_default_buslogs;
+                goto not_apilogs_apilogs_buslogs;
             }
 
-            return array (  '_controller' => 'ApiLogsBundle\\Controller\\DefaultController::busLogsAction',  '_route' => 'apilogs_default_buslogs',);
+            return array (  '_controller' => 'ApiLogsBundle\\Controller\\ApiLogsController::busLogsAction',  '_route' => 'apilogs_apilogs_buslogs',);
         }
-        not_apilogs_default_buslogs:
+        not_apilogs_apilogs_buslogs:
 
-        // apilogs_default_triplogs
+        // apilogs_apilogs_triplogs
         if ($pathinfo === '/trip-logs') {
             if ($this->context->getMethod() != 'POST') {
                 $allow[] = 'POST';
-                goto not_apilogs_default_triplogs;
+                goto not_apilogs_apilogs_triplogs;
             }
 
-            return array (  '_controller' => 'ApiLogsBundle\\Controller\\DefaultController::tripLogsAction',  '_route' => 'apilogs_default_triplogs',);
+            return array (  '_controller' => 'ApiLogsBundle\\Controller\\ApiLogsController::tripLogsAction',  '_route' => 'apilogs_apilogs_triplogs',);
         }
-        not_apilogs_default_triplogs:
+        not_apilogs_apilogs_triplogs:
 
-        // apilogs_default_busrouteslogs
+        // apilogs_apilogs_busrouteslogs
         if ($pathinfo === '/bus-route-logs') {
             if ($this->context->getMethod() != 'POST') {
                 $allow[] = 'POST';
-                goto not_apilogs_default_busrouteslogs;
+                goto not_apilogs_apilogs_busrouteslogs;
             }
 
-            return array (  '_controller' => 'ApiLogsBundle\\Controller\\DefaultController::busRoutesLogsAction',  '_route' => 'apilogs_default_busrouteslogs',);
+            return array (  '_controller' => 'ApiLogsBundle\\Controller\\ApiLogsController::busRoutesLogsAction',  '_route' => 'apilogs_apilogs_busrouteslogs',);
         }
-        not_apilogs_default_busrouteslogs:
+        not_apilogs_apilogs_busrouteslogs:
 
-        // apilogs_default_userlogs
+        // apilogs_apilogs_userlogs
         if ($pathinfo === '/user-logs') {
             if ($this->context->getMethod() != 'POST') {
                 $allow[] = 'POST';
-                goto not_apilogs_default_userlogs;
+                goto not_apilogs_apilogs_userlogs;
             }
 
-            return array (  '_controller' => 'ApiLogsBundle\\Controller\\DefaultController::userLogsAction',  '_route' => 'apilogs_default_userlogs',);
+            return array (  '_controller' => 'ApiLogsBundle\\Controller\\ApiLogsController::userLogsAction',  '_route' => 'apilogs_apilogs_userlogs',);
         }
-        not_apilogs_default_userlogs:
+        not_apilogs_apilogs_userlogs:
 
         if (0 === strpos($pathinfo, '/bus-routes')) {
             // busroute_busroute_editbusroute

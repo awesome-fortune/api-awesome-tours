@@ -43,9 +43,9 @@ class TripTableLog
     private $clientIP;
 
     /**
-     * @var string
+     * @var \DateTime
      *
-     * @ORM\Column(name="created", type="string", length=255)
+     * @ORM\Column(name="created", type="datetime")
      */
     private $created;
 
@@ -135,9 +135,9 @@ class TripTableLog
     /**
      * Set created
      *
-     * @param string $created
+     * @param \DateTime $created
      *
-     * @return TripTableLog
+     * @return BusTypeTableLog
      */
     public function setCreated($created)
     {
@@ -149,7 +149,7 @@ class TripTableLog
     /**
      * Get created
      *
-     * @return string
+     * @return \DateTime
      */
     public function getCreated()
     {
