@@ -111,6 +111,17 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
         }
         not_apilogs_apilogs_buslogs:
 
+        // apilogs_apilogs_usertriplogs
+        if ($pathinfo === '/user-trip-logs') {
+            if ($this->context->getMethod() != 'POST') {
+                $allow[] = 'POST';
+                goto not_apilogs_apilogs_usertriplogs;
+            }
+
+            return array (  '_controller' => 'ApiLogsBundle\\Controller\\ApiLogsController::userTripLogsAction',  '_route' => 'apilogs_apilogs_usertriplogs',);
+        }
+        not_apilogs_apilogs_usertriplogs:
+
         // apilogs_apilogs_triplogs
         if ($pathinfo === '/trip-logs') {
             if ($this->context->getMethod() != 'POST') {

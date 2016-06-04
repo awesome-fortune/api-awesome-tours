@@ -49,11 +49,13 @@ class TripController extends Controller
             $em->flush();
 
             $response = [
-                'message' => 'Successfully purchased ticket.'
+                'message' => 'Successfully purchased ticket.',
+                'status' => 'purchased'
             ];   
         } else {
             $response = [
-                'message' => 'tickets have been sold out'
+                'message' => 'tickets have been sold out',
+                'status' => 'sold_out'
             ];
         }
 

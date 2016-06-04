@@ -44,6 +44,26 @@ class ApiLogsController extends Controller
     }
 
     /**
+     * @Route("/user-trip-logs")
+     * @Method("POST")
+     */
+    public function userTripLogsAction(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
+        $username = $data['username'];
+        $em = $this->getDoctrine()->getManager();
+        $query = $em->createQuery(
+            "SELECT t.created, t.user, t.action
+            FROM ApiLogsBundle:TripTableLog t
+            WHERE t.user  = '$username'"
+        );
+
+        $products = $query->getResult();
+
+        return new JsonResponse($products);
+    }
+
+    /**
      * @Route("/trip-logs")
      * @Method("POST")
      */
