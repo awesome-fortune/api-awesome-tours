@@ -243,44 +243,30 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
 
         }
 
-        if (0 === strpos($pathinfo, '/buses')) {
-            // bus_bus_editbus
-            if (preg_match('#^/buses/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
-                if ($this->context->getMethod() != 'PUT') {
-                    $allow[] = 'PUT';
-                    goto not_bus_bus_editbus;
-                }
-
-                return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bus_editbus')), array (  '_controller' => 'BusBundle\\Controller\\BusController::editBusAction',));
-            }
-            not_bus_bus_editbus:
-
-            // bus_bus_createbus
-            if ($pathinfo === '/buses') {
-                if ($this->context->getMethod() != 'POST') {
-                    $allow[] = 'POST';
-                    goto not_bus_bus_createbus;
-                }
-
-                return array (  '_controller' => 'BusBundle\\Controller\\BusController::createBusAction',  '_route' => 'bus_bus_createbus',);
-            }
-            not_bus_bus_createbus:
-
-        }
-
-        // bus_bus_checkbusexistence
-        if ($pathinfo === '/check/bus-registration-existence') {
-            if ($this->context->getMethod() != 'POST') {
-                $allow[] = 'POST';
-                goto not_bus_bus_checkbusexistence;
-            }
-
-            return array (  '_controller' => 'BusBundle\\Controller\\BusController::checkBusExistenceAction',  '_route' => 'bus_bus_checkbusexistence',);
-        }
-        not_bus_bus_checkbusexistence:
-
         if (0 === strpos($pathinfo, '/bus')) {
             if (0 === strpos($pathinfo, '/buses')) {
+                // bus_bus_editbus
+                if (preg_match('#^/buses/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+                    if ($this->context->getMethod() != 'PUT') {
+                        $allow[] = 'PUT';
+                        goto not_bus_bus_editbus;
+                    }
+
+                    return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bus_editbus')), array (  '_controller' => 'BusBundle\\Controller\\BusController::editBusAction',));
+                }
+                not_bus_bus_editbus:
+
+                // bus_bus_createbus
+                if ($pathinfo === '/buses') {
+                    if ($this->context->getMethod() != 'POST') {
+                        $allow[] = 'POST';
+                        goto not_bus_bus_createbus;
+                    }
+
+                    return array (  '_controller' => 'BusBundle\\Controller\\BusController::createBusAction',  '_route' => 'bus_bus_createbus',);
+                }
+                not_bus_bus_createbus:
+
                 // bus_bus_listbus
                 if ($pathinfo === '/buses') {
                     if (!in_array($this->context->getMethod(), array('GET', 'HEAD'))) {
@@ -305,63 +291,52 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
 
             }
 
-            // bus_bustype_editbustype
-            if (0 === strpos($pathinfo, '/bus-types') && preg_match('#^/bus\\-types/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
-                if ($this->context->getMethod() != 'PUT') {
-                    $allow[] = 'PUT';
-                    goto not_bus_bustype_editbustype;
+            if (0 === strpos($pathinfo, '/bus-types')) {
+                // bus_bustype_editbustype
+                if (preg_match('#^/bus\\-types/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+                    if ($this->context->getMethod() != 'PUT') {
+                        $allow[] = 'PUT';
+                        goto not_bus_bustype_editbustype;
+                    }
+
+                    return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bustype_editbustype')), array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::editBusTypeAction',));
                 }
+                not_bus_bustype_editbustype:
 
-                return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bustype_editbustype')), array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::editBusTypeAction',));
-            }
-            not_bus_bustype_editbustype:
+                // bus_bustype_deletebustype
+                if (preg_match('#^/bus\\-types/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+                    if ($this->context->getMethod() != 'DELETE') {
+                        $allow[] = 'DELETE';
+                        goto not_bus_bustype_deletebustype;
+                    }
 
-        }
-
-        // bus_bustype_checkbustypeexistence
-        if ($pathinfo === '/check/bus-type-existence') {
-            if ($this->context->getMethod() != 'POST') {
-                $allow[] = 'POST';
-                goto not_bus_bustype_checkbustypeexistence;
-            }
-
-            return array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::checkBusTypeExistenceAction',  '_route' => 'bus_bustype_checkbustypeexistence',);
-        }
-        not_bus_bustype_checkbustypeexistence:
-
-        if (0 === strpos($pathinfo, '/bus-types')) {
-            // bus_bustype_deletebustype
-            if (preg_match('#^/bus\\-types/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
-                if ($this->context->getMethod() != 'DELETE') {
-                    $allow[] = 'DELETE';
-                    goto not_bus_bustype_deletebustype;
+                    return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bustype_deletebustype')), array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::deleteBusTypeAction',));
                 }
+                not_bus_bustype_deletebustype:
 
-                return $this->mergeDefaults(array_replace($matches, array('_route' => 'bus_bustype_deletebustype')), array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::deleteBusTypeAction',));
-            }
-            not_bus_bustype_deletebustype:
+                // bus_bustype_createbustype
+                if ($pathinfo === '/bus-types') {
+                    if ($this->context->getMethod() != 'POST') {
+                        $allow[] = 'POST';
+                        goto not_bus_bustype_createbustype;
+                    }
 
-            // bus_bustype_createbustype
-            if ($pathinfo === '/bus-types') {
-                if ($this->context->getMethod() != 'POST') {
-                    $allow[] = 'POST';
-                    goto not_bus_bustype_createbustype;
+                    return array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::createBusTypeAction',  '_route' => 'bus_bustype_createbustype',);
                 }
+                not_bus_bustype_createbustype:
 
-                return array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::createBusTypeAction',  '_route' => 'bus_bustype_createbustype',);
-            }
-            not_bus_bustype_createbustype:
+                // bus_bustype_listbustype
+                if ($pathinfo === '/bus-types') {
+                    if (!in_array($this->context->getMethod(), array('GET', 'HEAD'))) {
+                        $allow = array_merge($allow, array('GET', 'HEAD'));
+                        goto not_bus_bustype_listbustype;
+                    }
 
-            // bus_bustype_listbustype
-            if ($pathinfo === '/bus-types') {
-                if (!in_array($this->context->getMethod(), array('GET', 'HEAD'))) {
-                    $allow = array_merge($allow, array('GET', 'HEAD'));
-                    goto not_bus_bustype_listbustype;
+                    return array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::listBusTypeAction',  '_route' => 'bus_bustype_listbustype',);
                 }
+                not_bus_bustype_listbustype:
 
-                return array (  '_controller' => 'BusBundle\\Controller\\BusTypeController::listBusTypeAction',  '_route' => 'bus_bustype_listbustype',);
             }
-            not_bus_bustype_listbustype:
 
         }
 
@@ -376,6 +351,17 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
                 return array (  '_controller' => 'UserBundle\\Controller\\UserController::registerUserAction',  '_route' => 'user_user_registeruser',);
             }
             not_user_user_registeruser:
+
+            // user_user_listusers
+            if ($pathinfo === '/users') {
+                if (!in_array($this->context->getMethod(), array('GET', 'HEAD'))) {
+                    $allow = array_merge($allow, array('GET', 'HEAD'));
+                    goto not_user_user_listusers;
+                }
+
+                return array (  '_controller' => 'UserBundle\\Controller\\UserController::listUsersAction',  '_route' => 'user_user_listusers',);
+            }
+            not_user_user_listusers:
 
             // user_user_showuser
             if (preg_match('#^/users/(?P<username>[^/]++)$#s', $pathinfo, $matches)) {
@@ -411,6 +397,17 @@ class appDevUrlMatcher extends Symfony\Bundle\FrameworkBundle\Routing\Redirectab
             return array (  '_controller' => 'UserBundle\\Controller\\UserController::newTokenAction',  '_route' => 'user_user_newtoken',);
         }
         not_user_user_newtoken:
+
+        // user_user_deleteuser
+        if (0 === strpos($pathinfo, '/users') && preg_match('#^/users/(?P<id>[^/]++)$#s', $pathinfo, $matches)) {
+            if ($this->context->getMethod() != 'DELETE') {
+                $allow[] = 'DELETE';
+                goto not_user_user_deleteuser;
+            }
+
+            return $this->mergeDefaults(array_replace($matches, array('_route' => 'user_user_deleteuser')), array (  '_controller' => 'UserBundle\\Controller\\UserController::deleteUserAction',));
+        }
+        not_user_user_deleteuser:
 
         throw 0 < count($allow) ? new MethodNotAllowedException(array_unique($allow)) : new ResourceNotFoundException();
     }

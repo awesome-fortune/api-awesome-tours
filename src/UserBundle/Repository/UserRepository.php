@@ -35,9 +35,9 @@ class UserRepository extends EntityRepository implements UserLoaderInterface
      */
     public function findUserByEmail($email) 
     {
-        return $this->findOneBy(array(
+        return $this->findOneBy([
             'email' => $email
-        ));
+        ]);
     }
     
     /**
@@ -46,9 +46,9 @@ class UserRepository extends EntityRepository implements UserLoaderInterface
      */
     public function findUserByUsername($username) 
     {
-        return $this->findOneBy(array(
+        return $this->findOneBy([
             'username' => $username
-        ));        
+        ]);        
     }
     
     /**

@@ -11,6 +11,9 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use TripBundle\Entity\Trip;
+use TripBundle\Repository\TripRepository;
+use Extra\ResponseFactory;
+use Extra\ApiProblem;
 
 class TripController extends Controller
 {
@@ -27,9 +30,7 @@ class TripController extends Controller
 
         $em = $this->getDoctrine()->getManager();
 
-        $tripEntity = $this->getDoctrine()
-            ->getRepository("TripBundle:Trip")
-            ->find($id);
+        $tripEntity = $this->getTripRepository()->find($id);
 
         if ($tripEntity->getSeatsAvailable() != 0) {
             $originalTrip = $tripEntity->getTripName();
@@ -69,26 +70,31 @@ class TripController extends Controller
     public function deleteTripAction($id, Request $request)
     {
         $em = $this->getDoctrine()->getManager();
-        $trip = $em->getRepository("TripBundle:Trip")
-            ->find($id);
+        if ($trip = $this->getTripRepository()->find($id)) {
+            $tripName = $trip->getTripName();
 
-        $tripName = $trip->getTripName();
+            $tripTableLogEntity = new TripTableLog();
+            $tripTableLogEntity->setClientIP($request->getClientIp());
+            $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
+            $tripTableLogEntity->setUser('awesome_admin');
+            $tripTableLogEntity->setAction("Added $tripName");
 
-        $tripTableLogEntity = new TripTableLog();
-        $tripTableLogEntity->setClientIP($request->getClientIp());
-        $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
-        $tripTableLogEntity->setUser('awesome_admin');
-        $tripTableLogEntity->setAction("Added $tripName");
+            $em->remove($trip);
+            $em->persist($tripTableLogEntity);
+            $em->flush();
 
-        $em->remove($trip);
-        $em->persist($tripTableLogEntity);
-        $em->flush();
+            $response = [
+                'message' => 'Trip successfully removed from the list.'
+            ];
 
-        $response = [
-            'message' => 'Trip successfully removed from the list.'
-        ];
+            return new JsonResponse($response);
+        }
 
-        return new JsonResponse($response);
+        $responseFactory = new ResponseFactory();
+        $apiProblem = new ApiProblem(404);
+        $apiProblem->set('detail', 'Resource not found');
+
+        return $responseFactory->createResponse($apiProblem);
     }
 
     /**
@@ -98,48 +104,97 @@ class TripController extends Controller
     public function createTripAction(Request $request)
     {
         $data = json_decode($request->getContent(), true);
+        $errors = [];
+        $tripRepository = $this->getTripRepository();
 
-        $tripName = $data['tripName'];
-        $routeID = $data['route'];
-        $seats = $data['seats'];
-        $fare = $data['fare'];
-        $busID = $data['bus'];
-        $username = $data['username'];
-
-        if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
-
-            $tripTableLogEntity = new TripTableLog();
-            $tripTableLogEntity->setClientIP($request->getClientIp());
-            $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
-            $tripTableLogEntity->setUser($username);
-            $tripTableLogEntity->setAction("Added $tripName");
-
-            $tripEntity = new Trip();
-
-            $tripEntity->setFare($fare);
-            $tripEntity->setRouteID($routeID);
-            $tripEntity->setUpdated(DateTimeProvider::getNow());
-            $tripEntity->setBusID($busID);
-            $tripEntity->setSeatsAvailable($seats);
-            $tripEntity->setTripName($tripName);
-            $tripEntity->setCreated(DateTimeProvider::getNow());
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($tripTableLogEntity);
-            $em->persist($tripEntity);
-            $em->flush();
-
-            $response = [
-                'message' => $tripName . " successfully added to the trip list."
-            ];
-        } else {
-            $response = [
-                'message' => "Insufficient permissions",
-                'status' => 'error'
-            ];
+        if (!$tripName = $data['tripName']) {
+            $errors[] = "'Trip Name' is required";
         }
 
-        return new JsonResponse($response);
+        if (!$routeID = $data['route']) {
+            $errors[] = "'Bus Route' is required";
+        }
+
+        if (!$seats = $data['seats']) {
+            $errors[] = "'Number of Seats' is required";
+        }
+
+        if (!$fare = $data['fare']) {
+            $errors[] = "'Fare' is required";
+        }
+
+        if (!$busID = $data['bus']) {
+            $errors[] ="'Bus' is required";
+        }
+
+        if (!$username = $data['username']) {
+            $errors[] = "'Username' is required";
+        } else {
+            if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
+
+                if ($tripName = $tripRepository->findOneByTripName($tripName)) {
+                    $response = [
+                        'message' => $data['tripName'] . " already exists."
+                    ];
+                    $status = 400;
+
+                    return new JsonResponse($response, $status);
+                } else {
+                    $tripTableLogEntity = new TripTableLog();
+                    $tripTableLogEntity->setClientIP($request->getClientIp());
+                    $tripTableLogEntity->setCreated(DateTimeProvider::getNow());
+                    $tripTableLogEntity->setUser($username);
+                    $tripTableLogEntity->setAction("Added " . $data['tripName']);
+
+                    $tripEntity = new Trip();
+
+                    $tripEntity->setFare($fare);
+                    $tripEntity->setRouteID($routeID);
+                    $tripEntity->setUpdated(DateTimeProvider::getNow());
+                    $tripEntity->setBusID($busID);
+                    $tripEntity->setSeatsAvailable($seats);
+                    $tripEntity->setTripName($data['tripName']);
+                    $tripEntity->setCreated(DateTimeProvider::getNow());
+
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($tripTableLogEntity);
+                    $em->persist($tripEntity);
+                    $em->flush();
+
+                    $response = [
+                        'message' => $data['tripName'] . " successfully added to the trip list."
+                    ];
+
+                    return new JsonResponse($response, 200);
+                }
+            } else {
+                if (!ApiClient::hasAdminCredentialsForJSONRequest($username)) {
+                    $responseFactory = new ResponseFactory();
+                    $apiProblem = new ApiProblem(403);
+                    $apiProblem->set('detail', 'Access denied');
+
+                    return $responseFactory->createResponse($apiProblem);
+                }
+
+                if (count($errors) != 0) {
+                    $response = [
+                        'message' => 'There were some issues creating the Bus Type',
+                        'errors' => $errors
+                    ];
+                    return new JsonResponse($response, 400);
+                }
+            }
+        }
+
+    }
+
+    /**
+     * @return TripRepository
+     */
+    public function getTripRepository()
+    {
+        return $this->getDoctrine()
+            ->getRepository("TripBundle:Trip");
     }
 
     /**
@@ -148,9 +203,7 @@ class TripController extends Controller
      */
     public function listTripsAction()
     {
-        $trips = $this->getDoctrine()
-            ->getRepository("TripBundle:Trip")
-            ->findAll();
+        $trips = $this->getTripRepository()->findAll();
 
         $response = [];
 

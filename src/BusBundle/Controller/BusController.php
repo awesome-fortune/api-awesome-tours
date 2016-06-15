@@ -4,16 +4,16 @@ namespace BusBundle\Controller;
 
 use ApiLogsBundle\Entity\BusTableLog;
 use BusBundle\Entity\Bus;
+use BusBundle\Repository\BusRepository;
 use Extra\DateTimeProvider;
 use Extra\ApiClient;
+use Extra\ResponseFactory;
+use Extra\ApiProblem;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
-use Lexik\Bundle\JWTAuthenticationBundle\TokenExtractor\AuthorizationHeaderTokenExtractor;
-
 
 class BusController extends Controller
 {
@@ -38,7 +38,7 @@ class BusController extends Controller
                 ->find($id);
 
             $originalBus = $busEntity->getBusRegistration();
-            
+
             $busEntity->setBusType($busType);
             $busEntity->setSeats($seats);
             $busEntity->setBusRegistration($busRegistration);
@@ -67,7 +67,7 @@ class BusController extends Controller
 
         return new JsonResponse($response);
     }
-    
+
     /**
      * @Route("/buses")
      * @Method("POST")
@@ -75,97 +75,91 @@ class BusController extends Controller
     public function createBusAction(Request $request)
     {
         //$this->denyAccessUnlessGranted('ROLE_USER');
-        
-        $data = json_decode($request->getContent(), true); 
-        
-        $seats = $data['numberOfSeats'];
-        $busType = $data['busType'];
-        $busRegistration = $data['busRegistration'];
-        $username = $data['username'];
 
-        if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
-            $busEntity = new Bus();
-
-            $busEntity->setSeats($seats);
-            $busEntity->setBusRegistration($busRegistration);
-            $busEntity->setBusType($busType);
-            $busEntity->setCreated(DateTimeProvider::getNow());
-            $busEntity->setUpdated(DateTimeProvider::getNow());
-
-            $busTableLogEntity = new BusTableLog();
-            $busTableLogEntity->setCreated(DateTimeProvider::getNow());
-            $busTableLogEntity->setAction("Added $busRegistration");
-            $busTableLogEntity->setUser($username);
-            $busTableLogEntity->setClientIP($request->getClientIp());
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($busEntity);
-            $em->persist($busTableLogEntity);
-            $em->flush();
-
-            $response = [
-                'message' => $busRegistration . " successfully added to the bus list.",
-                'status' => 'success'
-            ];
-        } else {
-            $response = [
-                'message' => "Insufficient permissions",
-                'status' => 'error'
-            ];
-        }
-
-        return new JsonResponse($response);
-    }
-
-    /**
-     * @Route("/check/bus-registration-existence")
-     * @Method("POST")
-     * 
-     * Used to check if a bus already exists based on the user input for 
-     * the busRegistration field
-     */
-    public function checkBusExistenceAction(Request $request)
-    {
         $data = json_decode($request->getContent(), true);
-
-        $buses = $this->getDoctrine()
-            ->getRepository("BusBundle:Bus")
-            ->findAll();
-
-        $busRegistration = $data['busRegistration'];
-
-        $busRegistrationExists = false;
+        $errors = [];
+        $busRepository = $this->getBusRepository();
         
-        foreach ($buses as $bus)
-        {
-            if (strcasecmp($bus->getBusRegistration(), $busRegistration) === 0)
-            {
-                $busRegistrationExists = true;
-                break;
+        if (!$seats = $data['numberOfSeats']) {
+            $errors[] = "'Number Of Seats' is required";
+        }
+        if (!$busType = $data['busType']) {
+            $errors[] = "'Bus Type' is required";
+        }
+        
+        if (!$busRegistration = $data['busRegistration']) {
+            $errors[] = "'Bus Registration' is required";
+        }
+        
+        if (!$username = $data['username']) {
+            $errors[] = "'Username' is required";
+        } else {
+            if (ApiClient::hasAdminCredentialsForJSONRequest($username)) {
+                
+                if ($busRegistration = $busRepository->findOneByBusRegistration($busRegistration)) {
+                    $response = [
+                        'message' => $data['busRegistration'] . " already exists."
+                    ];
+                    $status = 400;
+
+                    return new JsonResponse($response, $status);
+                } else {
+                    $busEntity = new Bus();
+
+                    $busEntity->setSeats($seats);
+                    $busEntity->setBusRegistration($data['busRegistration']);
+                    $busEntity->setBusType($busType);
+                    $busEntity->setCreated(DateTimeProvider::getNow());
+                    $busEntity->setUpdated(DateTimeProvider::getNow());
+
+                    $busTableLogEntity = new BusTableLog();
+                    $busTableLogEntity->setCreated(DateTimeProvider::getNow());
+                    $busTableLogEntity->setAction("Added " . $data['busRegistration']);
+                    $busTableLogEntity->setUser($username);
+                    $busTableLogEntity->setClientIP($request->getClientIp());
+
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($busEntity);
+                    $em->persist($busTableLogEntity);
+                    $em->flush();
+
+                    $response = [
+                        'message' => $busRegistration . " successfully added to the bus list."
+                    ];
+
+                    return new JsonResponse($response, 200);   
+                }
+            } else {
+                if (!ApiClient::hasAdminCredentialsForJSONRequest($username)) {
+                    $responseFactory = new ResponseFactory();
+                    $apiProblem = new ApiProblem(403);
+                    $apiProblem->set('detail', 'Access denied');
+
+                    return $responseFactory->createResponse($apiProblem);
+                }
+
+                if (count($errors) != 0) {
+                    $response = [
+                        'message' => 'There were some issues creating the Bus Type',
+                        'errors' => $errors
+                    ];
+                    return new JsonResponse($response, 400);
+                }
             }
         }
-        
-        $response = [
-            'busRegistrationExists' => $busRegistrationExists,
-        ];
-
-        return new JsonResponse($response);
     }
-    
+
     /**
      * @Route("/buses")
      * @Method("GET")
      */
     public function listBusAction(Request $request)
     {
-        $buses = $this->getDoctrine()
-            ->getRepository("BusBundle:Bus")
-            ->findAll();
+        $buses = $this->getBusRepository()->findAll();
 
         $response = [];
 
-        foreach ($buses as $bus)
-        {
+        foreach ($buses as $bus) {
             $response[] = [
                 'id' => $bus->getId(),
                 'seats' => $bus->getSeats(),
@@ -178,6 +172,15 @@ class BusController extends Controller
     }
 
     /**
+     * @return BusRepository
+     */
+    public function getBusRepository()
+    {
+        return $this->getDoctrine()
+            ->getRepository("BusBundle:Bus");
+    }
+
+    /**
      * @Route("/buses/{id}")
      * @Method("DELETE")
      */
@@ -185,25 +188,32 @@ class BusController extends Controller
     {
         //$this->denyAccessUnlessGranted('ROLE_USER');
         $em = $this->getDoctrine()->getManager();
-        $bus = $em->getRepository('BusBundle:Bus')->find($id);
+        if ($bus = $this->getBusRepository()->find($id)) {
 
-        $busRegistration = $bus->getBusRegistration();
+            $busRegistration = $bus->getBusRegistration();
 
-        $busTableLogEntity = new BusTableLog();
-        $busTableLogEntity->setCreated(DateTimeProvider::getNow());
-        $busTableLogEntity->setAction("Removed $busRegistration");
-        $busTableLogEntity->setUser('awesome_admin');
-        $busTableLogEntity->setClientIP($request->getClientIp());
+            $busTableLogEntity = new BusTableLog();
+            $busTableLogEntity->setCreated(DateTimeProvider::getNow());
+            $busTableLogEntity->setAction("Removed $busRegistration");
+            $busTableLogEntity->setUser('awesome_admin');
+            $busTableLogEntity->setClientIP($request->getClientIp());
 
-        $em->remove($bus);
-        $em->persist($busTableLogEntity);
-        $em->flush();
+            $em->remove($bus);
+            $em->persist($busTableLogEntity);
+            $em->flush();
 
-        $response = [
-            'message' => 'Successfully removed item.',
-            'status' => 'Success'
-        ];
+            $response = [
+                'message' => 'Successfully removed item.'
+            ];
 
-        return new JsonResponse($response);
+            return new JsonResponse($response, 200);
+        }
+        
+        $responseFactory = new ResponseFactory();
+        $apiProblem = new ApiProblem(404);
+        $apiProblem->set('detail', 'Resource not found');
+
+        return $responseFactory->createResponse($apiProblem);
+
     }
 }
